@@ -31,22 +31,31 @@
           hide-details
           ></v-text-field> -->
       </v-card-title>
-      <v-data-table :headers="headers" :items="processedLocations" :items-per-page="30">
+      <v-data-table :headers="headers" :items="processedLocations" :items-per-page="30" dense>
         <template v-slot:item.location="{ item }">
           <a :href="getLink(item.location)">{{ item.location }}</a>
         </template>
         <template v-slot:item.fleets="{ item }">
           {{ formatFleet(item) }}
         </template>
-        <template v-slot:item.hasOwnerFleet="{ item }">
-          {{ item.nonOwnerFleet() }}
-        </template>
-        <template v-slot:body.append>
+        <template v-slot:body.prepend>
           <tr>
-            <td></td>
-            <td></td>
             <td>
-              <v-text-field v-model="names" type="text" label="other than"></v-text-field>
+              <v-text-field
+                v-model="location_search"
+                type="text"
+                label="Match Location"
+              ></v-text-field>
+            </td>
+            <td>
+              <v-text-field v-model="has_base_search" type="text" label="has base"></v-text-field>
+            </td>
+            <td>
+              <v-text-field
+                v-model="base_owner_search"
+                type="text"
+                label="other than"
+              ></v-text-field>
             </td>
             <td>
               <v-text-field
@@ -60,7 +69,13 @@
                 label="fleet owner other than"
                 ></v-text-field> -->
             </td>
-            <td colspan="4"></td>
+            <td>
+              <v-text-field
+                v-model="non_owner_fleet_search"
+                type="text"
+                label="non owner fleet"
+              ></v-text-field>
+            </td>
           </tr>
         </template>
       </v-data-table>
@@ -84,12 +99,13 @@ class Location {
   constructor(location) {
     this.location = location;
     this.has_base = false;
+    this.has_non_owner_fleet = false;
     this.base_owner = null;
     this.fleets = [];
   }
 
   nonOwnerFleet() {
-    return this.fleets.filter(f => this.base_owner !== f.player).length > 0;
+    this.has_non_owner_fleet = this.fleets.filter(f => this.base_owner !== f.player).length > 0;
   }
 }
 
@@ -113,7 +129,10 @@ export default {
     search: '',
     fleetReport: '',
     baseReport: '',
-    names: '',
+    base_owner_search: '',
+    location_search: '',
+    has_base_search: '',
+    non_owner_fleet_search: '',
     fleetsize: '',
     fleetplayer: '',
     showForm: true,
@@ -133,12 +152,12 @@ export default {
           .split('\n')
           .slice(4)
           .map(f => f.split('\t'))
-          .filter(Boolean);
+          .filter(f => f[0] !== '');
         this.processedBase = this.baseReport
           .split('\n')
           .slice(3)
           .map(f => f.split('\t'))
-          .filter(Boolean);
+          .filter(f => f[0] !== '');
         this.processData();
       }
     },
@@ -172,6 +191,7 @@ export default {
           locations[newLoc.location] = newLoc;
         }
         locations[fleet.location].fleets.push(fleet);
+        locations[fleet.location].nonOwnerFleet();
       }
       this.processedLocations = Object.values(locations);
     },
@@ -187,15 +207,37 @@ export default {
   computed: {
     headers() {
       return [
-        { text: 'Location', value: 'location' },
-        { text: 'Has Base', value: 'has_base' },
+        {
+          text: 'Location',
+          value: 'location',
+          filter: (value) => {
+            if (!this.location_search || !value) return true;
+            /* eslint-disable-next-line */
+            if (value.includes(this.location_search)) {
+              return true;
+            }
+            return false;
+          },
+        },
+        {
+          text: 'Has Base',
+          value: 'has_base',
+          filter: (value) => {
+            if (!this.has_base_search) return true;
+            /* eslint-disable-next-line */
+            if (value === (this.has_base_search.toLowerCase() === "true")) {
+              return true;
+            }
+            return false;
+          },
+        },
         {
           text: 'Base Owner',
           value: 'base_owner',
           filter: (value) => {
-            if (!this.names || !value) return true;
+            if (!this.base_owner_search || !value) return true;
             /* eslint-disable-next-line */
-            for (const name of this.names.split(",")) {
+            for (const name of this.base_owner_search.split(",")) {
               if (value.includes(name)) {
                 return false;
               }
@@ -228,7 +270,19 @@ export default {
           },
         },
 
-        { text: 'Has Non Owner Fleet', value: 'hasOwnerFleet' },
+        {
+          text: 'Has Non Owner Fleet',
+          value: 'has_non_owner_fleet',
+          filter: (value) => {
+            if (!this.non_owner_fleet_search) return true;
+            debugger;
+            /* eslint-disable-next-line */
+            if (value == (this.non_owner_fleet_search === "true")) {
+              return true;
+            }
+            return false;
+          },
+        },
       ];
     },
   },
