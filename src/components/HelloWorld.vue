@@ -101,6 +101,13 @@ export default {
     fleetReport: { required },
     baseReport: { required },
   },
+  created() {
+    this.fleetReport = localStorage.getItem('fleet_report');
+    this.baseReport = localStorage.getItem('base_report');
+    if (this.fleetReport && this.baseReport) {
+      this.submit();
+    }
+  },
 
   data: () => ({
     search: '',
@@ -120,6 +127,8 @@ export default {
     submit() {
       if (this.fleetReport && this.baseReport) {
         this.showForm = false;
+        localStorage.setItem('fleet_report', this.fleetReport);
+        localStorage.setItem('base_report', this.baseReport);
         this.processedFleets = this.fleetReport
           .split('\n')
           .slice(4)
@@ -142,6 +151,8 @@ export default {
       this.processedFleets = [];
       this.processedBase = [];
       this.showForm = true;
+      localStorage.removeItem('fleet_report');
+      localStorage.removeItem('base_report');
     },
     processData() {
       const locations = {};
