@@ -275,7 +275,6 @@ export default {
           value: 'has_non_owner_fleet',
           filter: (value) => {
             if (!this.non_owner_fleet_search) return true;
-            debugger;
             /* eslint-disable-next-line */
             if (value == (this.non_owner_fleet_search === "true")) {
               return true;
