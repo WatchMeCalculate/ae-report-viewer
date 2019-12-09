@@ -91,7 +91,7 @@ class Fleet {
   constructor(player, location, size, lastSeen) {
     this.player = player;
     this.location = location;
-    this.size = parseInt(size, 10);
+    this.size = parseInt(size.replace(',', ''), 10);
     this.lastSeen = lastSeen;
   }
 }
