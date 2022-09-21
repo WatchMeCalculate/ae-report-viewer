@@ -12,7 +12,7 @@
     "vue": "^2.6.10",
     "vue-cookies": "^1.5.13",
     "vuelidate": "^0.7.4",
-    "vuetify": "^2.1.0"
+    "vuetify": "^2.6.10"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.1.0",
